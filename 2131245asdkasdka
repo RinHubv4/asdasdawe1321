@@ -1,0 +1,776 @@
+-- RIN HUB - WITH LOADING SCREEN (FIXED)
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- Create GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "RinHub"
+gui.Parent = player:WaitForChild("PlayerGui")
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.DisplayOrder = 999
+
+-- ========== LOADING SCREEN ==========
+local loadingFrame = Instance.new("Frame")
+loadingFrame.Size = UDim2.new(1, 0, 1, 0)
+loadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+loadingFrame.BackgroundTransparency = 0.2
+loadingFrame.BorderSizePixel = 0
+loadingFrame.Parent = gui
+loadingFrame.ZIndex = 10
+
+-- Loading container (centered)
+local loadingContainer = Instance.new("Frame")
+loadingContainer.Size = UDim2.new(0, 300, 0, 200)
+loadingContainer.Position = UDim2.new(0.5, -150, 0.5, -100)
+loadingContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+loadingContainer.BorderSizePixel = 0
+loadingContainer.Parent = loadingFrame
+loadingContainer.ZIndex = 11
+
+-- Container corners
+local containerCorner = Instance.new("UICorner")
+containerCorner.CornerRadius = UDim.new(0, 15)
+containerCorner.Parent = loadingContainer
+
+-- Loading icon (spinning)
+local loadingIcon = Instance.new("TextLabel")
+loadingIcon.Size = UDim2.new(0, 60, 0, 60)
+loadingIcon.Position = UDim2.new(0.5, -30, 0, 30)
+loadingIcon.BackgroundTransparency = 1
+loadingIcon.Text = "⚡"
+loadingIcon.TextColor3 = Color3.fromRGB(255, 200, 0)
+loadingIcon.TextSize = 40
+loadingIcon.Font = Enum.Font.GothamBlack
+loadingIcon.Parent = loadingContainer
+loadingIcon.ZIndex = 12
+
+-- Spinning animation
+local spin = 0
+local spinConnection
+spinConnection = RunService.Heartbeat:Connect(function(dt)
+    spin = spin + dt * 100
+    loadingIcon.Rotation = spin
+end)
+
+-- Loading text
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(1, 0, 0, 30)
+loadingText.Position = UDim2.new(0, 0, 0, 100)
+loadingText.BackgroundTransparency = 1
+loadingText.Text = "Loading Rin Hub"
+loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadingText.TextSize = 20
+loadingText.Font = Enum.Font.GothamBold
+loadingText.Parent = loadingContainer
+loadingText.ZIndex = 12
+
+-- Dots animation
+local dots = Instance.new("TextLabel")
+dots.Size = UDim2.new(1, 0, 0, 20)
+dots.Position = UDim2.new(0, 0, 0, 130)
+dots.BackgroundTransparency = 1
+dots.Text = "..."
+dots.TextColor3 = Color3.fromRGB(140, 140, 140)
+dots.TextSize = 16
+dots.Font = Enum.Font.Gotham
+dots.Parent = loadingContainer
+dots.ZIndex = 12
+
+-- Animate dots
+local dotCount = 0
+local dotsConnection
+dotsConnection = RunService.Heartbeat:Connect(function()
+    -- Not needed, we'll use task.wait instead
+end)
+
+spawn(function()
+    while loadingFrame and loadingFrame.Parent do
+        dotCount = (dotCount % 3) + 1
+        dots.Text = string.rep(".", dotCount)
+        task.wait(0.5)
+    end
+end)
+
+-- Progress bar
+local progressBarBg = Instance.new("Frame")
+progressBarBg.Size = UDim2.new(0.8, 0, 0, 4)
+progressBarBg.Position = UDim2.new(0.1, 0, 0, 160)
+progressBarBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+progressBarBg.BorderSizePixel = 0
+progressBarBg.Parent = loadingContainer
+progressBarBg.ZIndex = 12
+
+local progressBarBgCorner = Instance.new("UICorner")
+progressBarBgCorner.CornerRadius = UDim.new(0, 2)
+progressBarBgCorner.Parent = progressBarBg
+
+local progressBarFill = Instance.new("Frame")
+progressBarFill.Size = UDim2.new(0, 0, 1, 0)
+progressBarFill.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
+progressBarFill.BorderSizePixel = 0
+progressBarFill.Parent = progressBarBg
+progressBarFill.ZIndex = 13
+
+local progressBarFillCorner = Instance.new("UICorner")
+progressBarFillCorner.CornerRadius = UDim.new(0, 2)
+progressBarFillCorner.Parent = progressBarFill
+
+-- Animate progress bar
+TweenService:Create(progressBarFill, TweenInfo.new(3), {
+    Size = UDim2.new(1, 0, 1, 0)
+}):Play()
+
+-- ========== WELCOME SCREEN (EXPANDED FRAME) ==========
+local welcomeFrame = Instance.new("Frame")
+welcomeFrame.Size = UDim2.new(1, 0, 1, 0)
+welcomeFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+welcomeFrame.BackgroundTransparency = 0.3
+welcomeFrame.BorderSizePixel = 0
+welcomeFrame.Visible = false
+welcomeFrame.Parent = gui
+welcomeFrame.ZIndex = 20
+
+-- Welcome container (EXPANDED TO 450x350)
+local welcomeContainer = Instance.new("Frame")
+welcomeContainer.Size = UDim2.new(0, 450, 0, 350)
+welcomeContainer.Position = UDim2.new(0.5, -225, 0.5, -175)
+welcomeContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+welcomeContainer.BorderSizePixel = 0
+welcomeContainer.Parent = welcomeFrame
+welcomeContainer.ZIndex = 21
+welcomeContainer.Visible = false
+welcomeContainer.ClipsDescendants = true -- Important para di lumabas ang elements
+
+-- Welcome container corners
+local welcomeCorner = Instance.new("UICorner")
+welcomeCorner.CornerRadius = UDim.new(0, 20)
+welcomeCorner.Parent = welcomeContainer
+
+-- Welcome glow effect
+local welcomeGlow = Instance.new("ImageLabel")
+welcomeGlow.Size = UDim2.new(1, 40, 1, 40)
+welcomeGlow.Position = UDim2.new(0, -20, 0, -20)
+welcomeGlow.BackgroundTransparency = 1
+welcomeGlow.Image = "rbxassetid://4996893790"
+welcomeGlow.ImageColor3 = Color3.fromRGB(255, 200, 0)
+welcomeGlow.ImageTransparency = 0.7
+welcomeGlow.Parent = welcomeContainer
+welcomeGlow.ZIndex = 22
+
+-- Welcome icon
+local welcomeIcon = Instance.new("TextLabel")
+welcomeIcon.Size = UDim2.new(0, 80, 0, 80)
+welcomeIcon.Position = UDim2.new(0.5, -40, 0, 40)
+welcomeIcon.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+welcomeIcon.BackgroundTransparency = 0.3
+welcomeIcon.Text = "⚡"
+welcomeIcon.TextColor3 = Color3.fromRGB(255, 200, 0)
+welcomeIcon.TextSize = 50
+welcomeIcon.Font = Enum.Font.GothamBlack
+welcomeIcon.BorderSizePixel = 0
+welcomeIcon.Parent = welcomeContainer
+welcomeIcon.ZIndex = 23
+
+local welcomeIconCorner = Instance.new("UICorner")
+welcomeIconCorner.CornerRadius = UDim.new(0, 20)
+welcomeIconCorner.Parent = welcomeIcon
+
+-- Welcome title
+local welcomeTitle = Instance.new("TextLabel")
+welcomeTitle.Size = UDim2.new(1, -40, 0, 40)
+welcomeTitle.Position = UDim2.new(0, 20, 0, 130)
+welcomeTitle.BackgroundTransparency = 1
+welcomeTitle.Text = "Welcome!"
+welcomeTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+welcomeTitle.TextSize = 28
+welcomeTitle.Font = Enum.Font.GothamBlack
+welcomeTitle.Parent = welcomeContainer
+welcomeTitle.ZIndex = 23
+
+-- Welcome message
+local welcomeMessage = Instance.new("TextLabel")
+welcomeMessage.Size = UDim2.new(1, -40, 0, 60)
+welcomeMessage.Position = UDim2.new(0, 20, 0, 180)
+welcomeMessage.BackgroundTransparency = 1
+welcomeMessage.Text = "You're using Rin Hub Script in Steal a Brainrot"
+welcomeMessage.TextColor3 = Color3.fromRGB(180, 180, 180)
+welcomeMessage.TextSize = 16
+welcomeMessage.TextWrapped = true
+welcomeMessage.Font = Enum.Font.Gotham
+welcomeMessage.Parent = welcomeContainer
+welcomeMessage.ZIndex = 23
+
+-- Continue button (NASA LOOB NA TALAGA - FIXED POSITION)
+local continueBtn = Instance.new("TextButton")
+continueBtn.Size = UDim2.new(0, 220, 0, 50)
+continueBtn.Position = UDim2.new(0.5, -110, 0, 270)  -- 270 para nasa loob ng 350 height
+continueBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
+continueBtn.BackgroundTransparency = 0.2
+continueBtn.Text = "CONTINUE"
+continueBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+continueBtn.TextSize = 18
+continueBtn.Font = Enum.Font.GothamBold
+continueBtn.BorderSizePixel = 0
+continueBtn.Parent = welcomeContainer
+continueBtn.ZIndex = 24
+continueBtn.AutomaticSize = Enum.AutomaticSize.None -- Ensure it stays fixed size
+
+local continueCorner = Instance.new("UICorner")
+continueCorner.CornerRadius = UDim.new(0, 12)
+continueCorner.Parent = continueBtn
+
+-- Hover effect
+continueBtn.MouseEnter:Connect(function()
+    if continueBtn then
+        TweenService:Create(continueBtn, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(255, 220, 50),
+            Size = UDim2.new(0, 230, 0, 52),
+            Position = UDim2.new(0.5, -115, 0, 269)
+        }):Play()
+    end
+end)
+
+continueBtn.MouseLeave:Connect(function()
+    if continueBtn then
+        TweenService:Create(continueBtn, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(255, 200, 0),
+            Size = UDim2.new(0, 220, 0, 50),
+            Position = UDim2.new(0.5, -110, 0, 270)
+        }):Play()
+    end
+end)
+
+-- ========== MAIN UI (RIN HUB) ==========
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 450, 0, 580)
+main.Position = UDim2.new(0.5, -225, 0.5, -290)
+main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+main.BorderSizePixel = 0
+main.ClipsDescendants = true
+main.Visible = false
+main.Parent = gui
+main.ZIndex = 30
+
+-- Main corners
+local corners = Instance.new("UICorner")
+corners.CornerRadius = UDim.new(0, 12)
+corners.Parent = main
+
+-- Subtle border
+local border = Instance.new("Frame")
+border.Size = UDim2.new(1, 2, 1, 2)
+border.Position = UDim2.new(0, -1, 0, -1)
+border.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+border.BackgroundTransparency = 0.5
+border.BorderSizePixel = 0
+border.Parent = main
+
+local borderCorner = Instance.new("UICorner")
+borderCorner.CornerRadius = UDim.new(0, 13)
+borderCorner.Parent = border
+
+-- ========== TITLE SECTION ==========
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 70)
+titleBar.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = main
+
+local titleBarCorner = Instance.new("UICorner")
+titleBarCorner.CornerRadius = UDim.new(0, 12)
+titleBarCorner.Parent = titleBar
+
+-- Logo/Icon
+local logo = Instance.new("TextLabel")
+logo.Size = UDim2.new(0, 40, 0, 40)
+logo.Position = UDim2.new(0, 15, 0.5, -20)
+logo.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+logo.BackgroundTransparency = 0.3
+logo.Text = "⚡"
+logo.TextColor3 = Color3.fromRGB(255, 200, 0)
+logo.TextSize = 24
+logo.Font = Enum.Font.GothamBlack
+logo.BorderSizePixel = 0
+logo.Parent = titleBar
+
+local logoCorner = Instance.new("UICorner")
+logoCorner.CornerRadius = UDim.new(0, 10)
+logoCorner.Parent = logo
+
+-- Title "RIN HUB"
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0, 200, 0, 30)
+title.Position = UDim2.new(0, 65, 0, 15)
+title.BackgroundTransparency = 1
+title.Text = "RIN HUB"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 24
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.GothamBlack
+title.Parent = titleBar
+
+-- Subtitle
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(0, 250, 0, 20)
+subtitle.Position = UDim2.new(0, 65, 0, 45)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "Steal A Brainrot Scripts"
+subtitle.TextColor3 = Color3.fromRGB(140, 140, 140)
+subtitle.TextSize = 13
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Font = Enum.Font.GothamMedium
+subtitle.Parent = titleBar
+
+-- Window controls
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 35, 0, 35)
+closeBtn.Position = UDim2.new(1, -45, 0.5, -17.5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+closeBtn.TextSize = 16
+closeBtn.Font = Enum.Font.Gotham
+closeBtn.BorderSizePixel = 0
+closeBtn.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeBtn
+
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 35, 0, 35)
+minBtn.Position = UDim2.new(1, -90, 0.5, -17.5)
+minBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+minBtn.Text = "−"
+minBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+minBtn.TextSize = 20
+minBtn.Font = Enum.Font.Gotham
+minBtn.BorderSizePixel = 0
+minBtn.Parent = titleBar
+
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 8)
+minCorner.Parent = minBtn
+
+-- Hover effects
+closeBtn.MouseEnter:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+end)
+closeBtn.MouseLeave:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}):Play()
+end)
+
+minBtn.MouseEnter:Connect(function()
+    TweenService:Create(minBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+end)
+minBtn.MouseLeave:Connect(function()
+    TweenService:Create(minBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}):Play()
+end)
+
+-- ========== DIVIDER ==========
+local divider = Instance.new("Frame")
+divider.Size = UDim2.new(0.95, 0, 0, 1)
+divider.Position = UDim2.new(0.025, 0, 0, 70)
+divider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+divider.BorderSizePixel = 0
+divider.Parent = main
+
+-- ========== TOGGLE CARDS ==========
+local function createRinToggle(titleText, desc, yPos)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(0.95, 0, 0, 120)
+    card.Position = UDim2.new(0.025, 0, 0, yPos)
+    card.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    card.BorderSizePixel = 0
+    card.Parent = main
+    
+    local cardCorner = Instance.new("UICorner")
+    cardCorner.CornerRadius = UDim.new(0, 12)
+    cardCorner.Parent = card
+    
+    -- Progress bar
+    local progressBar = Instance.new("Frame")
+    progressBar.Size = UDim2.new(0, 0, 0, 4)
+    progressBar.Position = UDim2.new(0, 0, 1, -4)
+    progressBar.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
+    progressBar.BorderSizePixel = 0
+    progressBar.Parent = card
+    
+    local progressCorner = Instance.new("UICorner")
+    progressCorner.CornerRadius = UDim.new(0, 2)
+    progressCorner.Parent = progressBar
+    
+    -- Hover effect
+    card.MouseEnter:Connect(function()
+        TweenService:Create(card, TweenInfo.new(0.3), {
+            BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        }):Play()
+    end)
+    
+    card.MouseLeave:Connect(function()
+        TweenService:Create(card, TweenInfo.new(0.3), {
+            BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+        }):Play()
+    end)
+    
+    -- Icon
+    local toggleIcon = Instance.new("TextLabel")
+    toggleIcon.Size = UDim2.new(0, 35, 0, 35)
+    toggleIcon.Position = UDim2.new(0, 15, 0, 15)
+    toggleIcon.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    toggleIcon.BackgroundTransparency = 0.5
+    toggleIcon.Text = titleText == "Freeze Trade" and "❄️" or titleText == "Auto Ready" and "✓" or "🔄"
+    toggleIcon.TextColor3 = Color3.fromRGB(200, 200, 200)
+    toggleIcon.TextSize = 20
+    toggleIcon.Font = Enum.Font.Gotham
+    toggleIcon.BorderSizePixel = 0
+    toggleIcon.Parent = card
+    
+    local iconCorner = Instance.new("UICorner")
+    iconCorner.CornerRadius = UDim.new(0, 10)
+    iconCorner.Parent = toggleIcon
+
+    -- Title
+    local cardTitle = Instance.new("TextLabel")
+    cardTitle.Size = UDim2.new(0.5, 0, 0, 30)
+    cardTitle.Position = UDim2.new(0, 60, 0, 15)
+    cardTitle.BackgroundTransparency = 1
+    cardTitle.Text = titleText
+    cardTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    cardTitle.TextSize = 18
+    cardTitle.TextXAlignment = Enum.TextXAlignment.Left
+    cardTitle.Font = Enum.Font.GothamBold
+    cardTitle.Parent = card
+    
+    -- Description
+    local cardDesc = Instance.new("TextLabel")
+    cardDesc.Size = UDim2.new(0.6, 0, 0, 25)
+    cardDesc.Position = UDim2.new(0, 60, 0, 45)
+    cardDesc.BackgroundTransparency = 1
+    cardDesc.Text = desc
+    cardDesc.TextColor3 = Color3.fromRGB(140, 140, 140)
+    cardDesc.TextSize = 13
+    cardDesc.TextXAlignment = Enum.TextXAlignment.Left
+    cardDesc.Font = Enum.Font.Gotham
+    cardDesc.Parent = card
+    
+    -- Status dot
+    local statusDot = Instance.new("Frame")
+    statusDot.Size = UDim2.new(0, 12, 0, 12)
+    statusDot.Position = UDim2.new(1, -190, 0, 22)
+    statusDot.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    statusDot.BorderSizePixel = 0
+    statusDot.Parent = card
+    
+    local dotCorner = Instance.new("UICorner")
+    dotCorner.CornerRadius = UDim.new(1, 0)
+    dotCorner.Parent = statusDot
+    
+    -- Status text
+    local statusText = Instance.new("TextLabel")
+    statusText.Size = UDim2.new(0, 100, 0, 25)
+    statusText.Position = UDim2.new(1, -175, 0, 16)
+    statusText.BackgroundTransparency = 1
+    statusText.Text = "Inactive"
+    statusText.TextColor3 = Color3.fromRGB(200, 0, 0)
+    statusText.TextSize = 14
+    statusText.Font = Enum.Font.GothamMedium
+    statusText.TextXAlignment = Enum.TextXAlignment.Left
+    statusText.Parent = card
+    
+    -- ON/OFF Button
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Size = UDim2.new(0, 80, 0, 35)
+    toggleBtn.Position = UDim2.new(1, -100, 0, 65)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    toggleBtn.BackgroundTransparency = 0.2
+    toggleBtn.Text = "OFF"
+    toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleBtn.TextSize = 15
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Parent = card
+    
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 8)
+    btnCorner.Parent = toggleBtn
+    
+    -- Toggle functionality
+    local active = false
+    local isProcessing = false
+    
+    local function setState(newState)
+        active = newState
+        
+        if active then
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+            toggleBtn.Text = "ON"
+            statusDot.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+            statusText.Text = "Active"
+            statusText.TextColor3 = Color3.fromRGB(0, 200, 0)
+        else
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+            toggleBtn.Text = "OFF"
+            statusDot.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+            statusText.Text = "Inactive"
+            statusText.TextColor3 = Color3.fromRGB(200, 0, 0)
+        end
+    end
+    
+    toggleBtn.MouseButton1Click:Connect(function()
+        if isProcessing then return end
+        
+        if not active then
+            isProcessing = true
+            
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+            toggleBtn.Text = "..."
+            statusDot.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
+            statusText.Text = "Activating"
+            statusText.TextColor3 = Color3.fromRGB(255, 170, 0)
+            
+            TweenService:Create(progressBar, TweenInfo.new(3), {
+                Size = UDim2.new(1, 0, 0, 4)
+            }):Play()
+            
+            local pulse = 0
+            local pulseConnection
+            pulseConnection = RunService.Heartbeat:Connect(function(dt)
+                pulse = (pulse + dt * 3) % 1
+                local transparency = 0.2 + math.sin(pulse * math.pi) * 0.4
+                statusDot.BackgroundTransparency = transparency
+            end)
+            
+            task.wait(3.5)
+            
+            if pulseConnection then
+                pulseConnection:Disconnect()
+            end
+            statusDot.BackgroundTransparency = 0
+            
+            setState(true)
+            
+            task.wait(0.3)
+            progressBar.Size = UDim2.new(0, 0, 0, 4)
+            
+            isProcessing = false
+            
+        else
+            setState(false)
+            progressBar.Size = UDim2.new(0, 0, 0, 4)
+        end
+    end)
+    
+    return card
+end
+
+-- Create toggles
+createRinToggle("Freeze Trade", "Lock and secure trade session", 80)
+createRinToggle("Auto Ready", "Forcing the victim to Ready", 215)
+createRinToggle("Auto Accept", "Forcing the victim to Accept", 350)
+
+-- ========== FOOTER ==========
+local footer = Instance.new("Frame")
+footer.Size = UDim2.new(0.95, 0, 0, 70)
+footer.Position = UDim2.new(0.025, 0, 0, 490)
+footer.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+footer.BorderSizePixel = 0
+footer.Parent = main
+
+local footerCorner = Instance.new("UICorner")
+footerCorner.CornerRadius = UDim.new(0, 12)
+footerCorner.Parent = footer
+
+-- "Made by Rin"
+local madeBy = Instance.new("TextLabel")
+madeBy.Size = UDim2.new(1, -20, 0, 25)
+madeBy.Position = UDim2.new(0, 10, 0, 10)
+madeBy.BackgroundTransparency = 1
+madeBy.Text = "Made by Rin"
+madeBy.TextColor3 = Color3.fromRGB(200, 200, 200)
+madeBy.TextSize = 16
+madeBy.TextXAlignment = Enum.TextXAlignment.Left
+madeBy.Font = Enum.Font.GothamMedium
+madeBy.Parent = footer
+
+-- Social links
+local social = Instance.new("TextLabel")
+social.Size = UDim2.new(1, -20, 0, 20)
+social.Position = UDim2.new(0, 10, 0, 35)
+social.BackgroundTransparency = 1
+social.Text = "YT: Rin Scripts  •  TT: rin_hub00"
+social.TextColor3 = Color3.fromRGB(120, 120, 120)
+social.TextSize = 13
+social.TextXAlignment = Enum.TextXAlignment.Left
+social.Font = Enum.Font.Gotham
+social.Parent = footer
+
+-- Version
+local version = Instance.new("TextLabel")
+version.Size = UDim2.new(0, 70, 0, 20)
+version.Position = UDim2.new(1, -80, 0, 40)
+version.BackgroundTransparency = 1
+version.Text = "v4.0.0"
+version.TextColor3 = Color3.fromRGB(90, 90, 90)
+version.TextSize = 12
+version.Font = Enum.Font.Gotham
+version.Parent = footer
+
+-- ========== TRANSITION SEQUENCE ==========
+task.wait(5) -- Wait for loading to finish
+
+-- Stop spinning animation
+if spinConnection then
+    spinConnection:Disconnect()
+end
+
+-- Fade out loading screen
+TweenService:Create(loadingFrame, TweenInfo.new(0.5), {
+    BackgroundTransparency = 1
+}):Play()
+
+for _, v in pairs(loadingContainer:GetDescendants()) do
+    if v:IsA("TextLabel") or v:IsA("Frame") then
+        pcall(function()
+            TweenService:Create(v, TweenInfo.new(0.5), {
+                BackgroundTransparency = 1,
+                TextTransparency = 1
+            }):Play()
+        end)
+    end
+end
+
+task.wait(0.5)
+loadingFrame.Visible = false
+
+-- Show welcome screen with animation
+welcomeFrame.Visible = true
+welcomeContainer.Visible = true
+welcomeContainer.Size = UDim2.new(0, 0, 0, 0)
+welcomeContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+TweenService:Create(welcomeContainer, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Size = UDim2.new(0, 450, 0, 350), -- Match the actual size
+    Position = UDim2.new(0.5, -225, 0.5, -175)
+}):Play()
+
+-- Continue button functionality (FIXED)
+continueBtn.MouseButton1Click:Connect(function()
+    print("Continue button clicked!") -- Para malaman kung gumagana
+    
+    -- Hide welcome screen
+    TweenService:Create(welcomeFrame, TweenInfo.new(0.3), {
+        BackgroundTransparency = 1
+    }):Play()
+    
+    TweenService:Create(welcomeContainer, TweenInfo.new(0.3), {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        BackgroundTransparency = 1
+    }):Play()
+    
+    task.wait(0.3)
+    welcomeFrame.Visible = false
+    
+    -- Show main UI with animation
+    main.Visible = true
+    main.BackgroundTransparency = 0.2
+    main.Size = UDim2.new(0, 400, 0, 500)
+    main.Position = UDim2.new(0.5, -200, 0.5, -250)
+    
+    TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0,
+        Size = UDim2.new(0, 450, 0, 580),
+        Position = UDim2.new(0.5, -225, 0.5, -290)
+    }):Play()
+    
+    print("Main UI should now be visible!")
+end)
+
+-- ========== MINIMIZE FUNCTIONALITY ==========
+local minimized = false
+local originalSize = main.Size
+local originalPos = main.Position
+
+minBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    
+    if minimized then
+        TweenService:Create(main, TweenInfo.new(0.3), {
+            Size = UDim2.new(0, 450, 0, 70),
+            Position = UDim2.new(0.5, -225, 0, 10)
+        }):Play()
+        minBtn.Text = "□"
+        
+        for _, v in pairs(main:GetChildren()) do
+            if v ~= titleBar and v ~= divider then
+                v.Visible = false
+            end
+        end
+        divider.Visible = false
+    else
+        TweenService:Create(main, TweenInfo.new(0.3), {
+            Size = originalSize,
+            Position = originalPos
+        }):Play()
+        minBtn.Text = "−"
+        
+        for _, v in pairs(main:GetChildren()) do
+            v.Visible = true
+        end
+    end
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+    TweenService:Create(main, TweenInfo.new(0.3), {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        BackgroundTransparency = 1
+    }):Play()
+    task.wait(0.3)
+    gui:Destroy()
+end)
+
+-- ========== DRAG FUNCTIONALITY ==========
+local dragging = false
+local dragStart
+local startPos
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+print("⚫ RIN HUB loaded - with LOADING SCREEN and WELCOME MESSAGE!")
+print("👉 Click CONTINUE button to proceed")
